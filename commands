@@ -1,0 +1,38 @@
+kubectl -n netology apply -f deployment-1.yaml
+kubectl -n netology get pods
+kubectl -n netology exec -it multitool-pod -- bash
+kubectl -n netology exec -it busybox-multitool-65d9c4bd7f-gx77x -c busybox -- /bin/bash
+kubectl -n netology exec -it busybox-multitool-65d9c4bd7f-gx77x -c multitool -- /bin/bash
+kubectl -n netology exec -it multitool-xcn7b -- /bin/bash
+curl nginx-svc.netology.svc.cluster.local:9001
+curl -H "Host: example.com" https://nginx-svc.netology.svc.cluster.local:9001
+curl -k -H "Host: example.com" https://127.0.0.1
+
+curl multitool-svc.netology.svc.cluster.local:9002
+kubectl -n netology apply -f deployment-1.yaml
+kubectl -n netology apply -f multitool.yaml
+kubectl -n netology apply -f ingress.yaml
+
+#Install Helm
+curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+sudo apt-get install apt-transport-https --yes
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+sudo apt-get update
+sudo apt-get install helm
+
+# Install Nginx ingress
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx && \
+helm repo update && \
+helm install ingress-nginx ingress-nginx/ingress-nginx
+
+
+
+microk8s kubeadm certs renew all
+microk8s refresh-certs
+microk8s refresh-certs -e
+microk8s refresh-certs -e ca.crt
+microk8s refresh-certs -e front-proxy-client.crt
+microk8s refresh-certs -e server.crt
+microk8s config
+
+openssl req -x509 -nodes -days 9999 -newkey rsa:2048 -keyout certs/ingress-tls.key -out certs/ingress-tls.crt

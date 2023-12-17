@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: naginx-multitool
+spec:
+  selector:
+    matchLabels:
+      app: naginx-multitool
+  replicas: 1 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: naginx-multitool
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        volumeMounts:
+        - name: vol-nginx-default
+          mountPath: /etc/nginx/conf.d
+        - name: vol-nginx-index
+          mountPath: /usr/share/nginx/html
+      - name: multitool
+        image: praqma/network-multitool
+        ports:
+        - containerPort: 80
+      volumes:
+      - name: vol-nginx-default
+        configMap:
+          name: conf-nginx-default
+      - name: vol-nginx-index
+        configMap:
+          name: conf-nginx-index
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: conf-nginx-default
+data:
+  default.conf: |
+    server {
+      listen       8080;
+      server_name  localhost;
+
+      location / {
+          root   /usr/share/nginx/html;
+          index  index.html index.htm;
+      }
+
+      error_page   500 502 503 504  /50x.html;
+      location = /50x.html {
+          root   /usr/share/nginx/html;
+      }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: conf-nginx-index
+data:
+  index.html: |
+    <p><strong>Hellow Netology!</strong></p>
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+spec:
+  ports:
+  - name: http
+    port: 9001
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: naginx-multitool
